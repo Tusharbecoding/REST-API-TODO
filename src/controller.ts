@@ -9,8 +9,6 @@ const getTasks = (req: IncomingMessage, res: ServerResponse) => {
     path.join(__dirname, "store.json"),
     "utf8",
     (err, data) => {
-      //Read store.json file
-      //Check out any errors
       if (err) {
         res.writeHead(500, { "Content-Type": "application/json" });
         res.end(
@@ -87,3 +85,101 @@ const addTask = (req: IncomingMessage, res: ServerResponse) => {
     });
   });
 };
+
+const updateTask = (req: IncomingMessage, res: ServerResponse) => {
+   let data = "";
+   req.on("data", (chunk) => {
+     data += chunk.toString();
+   });
+   req.on("end", () => {
+     let task: Task = JSON.parse(data);
+     fs.readFile(path.join(__dirname, "store.json"), "utf8", (err, data) => {
+       if (err) {
+         res.writeHead(500, { "Content-Type": "application/json" });
+         res.end(
+           JSON.stringify({
+             success: false,
+             error: err,
+           })
+         );
+       } else {
+         let tasks: [Task] = JSON.parse(data);
+         let index = tasks.findIndex((t) => t.id == task.id);
+         tasks[index] = task;
+         fs.writeFile(
+           path.join(__dirname, "store.json"),
+           JSON.stringify(tasks),
+           (err) => {
+             if (err) {
+               res.writeHead(500, { "Content-Type": "application/json" });
+               res.end(
+                 JSON.stringify({
+                   success: false,
+                   error: err,
+                 })
+               );
+             } else {
+               res.writeHead(200, { "Content-Type": "application/json" });
+               res.end(
+                 JSON.stringify({
+                   success: true,
+                   message: task,
+                 })
+               );
+             }
+           }
+         );
+       }
+     });
+   });
+};
+
+const deleteTask = (req: IncomingMessage, res: ServerResponse) => {
+   let data = "";
+   req.on("data", (chunk) => {
+     data += chunk.toString();
+   });
+   req.on("end", () => {
+     let task: Task = JSON.parse(data);
+     fs.readFile(path.join(__dirname, "store.json"), "utf8", (err, data) => {
+       if (err) {
+         res.writeHead(500, { "Content-Type": "application/json" });
+         res.end(
+           JSON.stringify({
+             success: false,
+             error: err,
+           })
+         );
+       } else {
+         let tasks: [Task] = JSON.parse(data);
+         let index = tasks.findIndex((t) => t.id == task.id);
+         tasks.splice(index, 1);
+         fs.writeFile(
+           path.join(__dirname, "store.json"),
+           JSON.stringify(tasks),
+           (err) => {
+             if (err) {
+               res.writeHead(500, { "Content-Type": "application/json" });
+               res.end(
+                 JSON.stringify({
+                   success: false,
+                   error: err,
+                 })
+               );
+             } else {
+               res.writeHead(200, { "Content-Type": "application/json" });
+               res.end(
+                 JSON.stringify({
+                   success: true,
+                   message: task,
+                 })
+               );
+             }
+           }
+         );
+       }
+     });
+   });
+};
+
+export { getTasks, addTask, updateTask, deleteTask };
